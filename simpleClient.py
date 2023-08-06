@@ -65,11 +65,9 @@ class SimpleClient:
                 self.PubByteHandler(mb)
         elif t == MQ_MERGE:
             if self.conf.zlib:
-                print("--------------->1")
                 bsz = zlibUncz(msg[1:])
             else:
                 bsz = msg[1:]
-                print("=================>2")
             if bsz is not None:
                 mb = TDecode(bsz, MergeBean())
                 if mb is not None:
