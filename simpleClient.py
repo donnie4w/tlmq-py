@@ -6,13 +6,13 @@ https://github.com/donnie4w/tlmq-py
 """
 import _thread
 import logging
-
+from mqClient import MqClient
 from mqcli import *
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
 
-class SimpleClient:
+class SimpleClient(MqClient):
     PullByteHandler = None
     PullJsonHandler = None
     PubByteHandler = None
@@ -109,7 +109,7 @@ class SimpleClient:
         time.sleep(1)
         if len(self.subMap) > 0:
             for s in self.subMap.keys():
-                self.Sub(s)
+                self.sub(s)
         if self.Before is not None:
             self.Before()
         _thread.start_new_thread(self.ping, ())
@@ -128,45 +128,69 @@ class SimpleClient:
                 self.MqCli.close()
                 break
 
-    def PubByte(self, topic, msg) -> int:
+    def pubByte(self, topic, msg) -> int:
         return self.MqCli.PubByte(topic, msg)
 
-    def PubJson(self, topic, msg) -> int:
+    def pubJson(self, topic, msg) -> int:
         return self.MqCli.PubJson(topic, msg)
 
-    def PullByte(self, topic, id) -> int:
+    def pullByte(self, topic, id) -> int:
         return self.MqCli.PullByte(topic, id)
 
-    def PullJson(self, topic, id) -> int:
+    def pullJson(self, topic, id) -> int:
         return self.MqCli.PullJson(topic, id)
 
-    def PubMem(self, topic, msg) -> int:
+    def pubMem(self, topic, msg) -> int:
         return self.MqCli.PubMem(topic, msg)
 
-    def Sub(self, topic) -> int:
+    def sub(self, topic) -> int:
         self.subMap[topic] = 0
         return self.MqCli.Sub(topic)
 
-    def SubCancel(self, topic) -> int:
+    def subCancel(self, topic) -> int:
         del self.subMap[topic]
         return self.MqCli.SubCancel(topic)
 
-    def PullByteSync(self, topic, id) -> MqBean:
+    def pullByteSync(self, topic, id) -> MqBean:
         return self.MqCli.PullByteSync(topic, id)
 
-    def PullJsonSync(self, topic, id) -> str:
+    def pullJsonSync(self, topic, id) -> str:
         return self.MqCli.PullJsonSync(topic, id)
 
-    def PullIdSync(self, topic) -> int:
+    def pullIdSync(self, topic) -> int:
         return self.MqCli.PullIdSync(topic)
 
-    def RecvAckOn(self, sec=60):
-        self.conf.recvAckOn=True
+    def recvAckOn(self, sec=60) -> int:
+        self.conf.recvAckOn = True
         return self.MqCli.RecvAckOn(sec)
 
-    def MergeOn(self, size=1):
+    def mergeOn(self, size=1) -> int:
         return self.MqCli.MergeOn(size)
 
-    def SetZlib(self, on):
+    def setZlib(self, on) -> int:
         self.conf.zlib = True
         return self.MqCli.SetZlib(on)
+
+    def pullByteHandler(self, f):
+        self.PullByteHandler = f
+
+    def pullJsonHandler(self, f):
+        self.PullJsonHandler = f
+
+    def pubByteHandler(self, f):
+        self.PubByteHandler = f
+
+    def pubJsonHandler(self, f):
+        self.PubJsonHandler = f
+
+    def pubMemHandler(self, f):
+        self.PubMemHandler = f
+
+    def ackHandler(self, f):
+        self.AckHandler = f
+
+    def errHandler(self, f):
+        self.ErrHandler = f
+
+    def before(self, f):
+        self.Before = f
