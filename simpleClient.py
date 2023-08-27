@@ -11,7 +11,6 @@ from mqcli import *
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
-
 class SimpleClient(MqClient):
     PullByteHandler = None
     PullJsonHandler = None
