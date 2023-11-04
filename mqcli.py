@@ -108,6 +108,10 @@ class Cli:
         bs = bytearray(topic, 'utf-8')
         return self.send(MQ_SUB, bs)
 
+    def SubJson(self, topic) -> int:
+        bs = bytearray(topic, 'utf-8')
+        return self.send(MQ_SUB|0x80, bs)
+
     def SubCancel(self, topic) -> int:
         bs = bytearray(topic, 'utf-8')
         return self.send(MQ_SUBCANCEL, bs)
@@ -115,7 +119,8 @@ class Cli:
     def PullByteSync(self, topic, id) -> MqBean:
         bp = MqBean(topic=topic, id=id)
         bs = TEncode(bp)
-        _, r = getMsg(MQ_PULLBYTE, bs)
+        # _, r = getMsg(MQ_PULLBYTE, bs)
+        r = bytearray(toBytes(MQ_PULLBYTE) + bs)
         msg = httpPost(self.conf.isSSL, r, self.conf.host, self.conf.port, self.conf.auth, self.conf.origin)
         if msg[0] == MQ_PULLBYTE:
             return TDecode(msg[1:], MqBean())
@@ -125,7 +130,8 @@ class Cli:
     def PullJsonSync(self, topic, id) -> str:
         d = {"topic": topic, "id": id}
         bs = JEncode(d)
-        _, r = getMsg(MQ_PULLJSON, bs)
+        # _, r = getMsg(MQ_PULLJSON, bs)
+        r = bytearray(toBytes(MQ_PULLJSON) + bs)
         msg = httpPost(self.conf.isSSL, r, self.conf.host, self.conf.port, self.conf.auth, self.conf.origin)
         if msg[0] == MQ_PULLJSON:
             return JDecode(msg[1:].decode('UTF-8'))
@@ -134,7 +140,8 @@ class Cli:
 
     def PullIdSync(self, topic) -> int:
         bs = bytearray(topic, 'utf-8')
-        _, r = getMsg(MQ_CURRENTID, bs)
+        # _, r = getMsg(MQ_CURRENTID, bs)
+        r = bytearray(toBytes(MQ_CURRENTID)+bs)
         msg = httpPost(self.conf.isSSL, r, self.conf.host, self.conf.port, self.conf.auth, self.conf.origin)
         if msg[0] == MQ_CURRENTID:
             return byte2long(msg[1:9])
