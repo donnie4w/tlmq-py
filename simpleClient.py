@@ -11,6 +11,7 @@ from mqcli import *
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
+
 class SimpleClient(MqClient):
     PullByteHandler = None
     PullJsonHandler = None
@@ -54,6 +55,7 @@ class SimpleClient(MqClient):
         if self.conf.recvAckOn and (
                 t == MQ_PULLJSON or t == MQ_PULLBYTE or t == MQ_PUBJSON or t == MQ_PUBBYTE or t == MQ_MERGE):
             self.MqCli.ackMsg(msg)
+        self.pingCount = 0
         self.parse(msg)
 
     def parse(self, msg):
@@ -91,7 +93,8 @@ class SimpleClient(MqClient):
             if self.PullJsonHandler is not None:
                 self.PullJsonHandler(mb)
         elif t == MQ_PING:
-            self.pingCount -= 1
+            if self.pingCount > 0:
+                self.pingCount -= 1
         elif t == MQ_ACK:
             if self.AckHandler is not None:
                 self.AckHandler(byte2long(msg[1:]))
@@ -123,7 +126,6 @@ class SimpleClient(MqClient):
                     break
                 self.MqCli.ping()
             except:
-                print("ping error")
                 self.MqCli.close()
                 break
 
@@ -145,6 +147,10 @@ class SimpleClient(MqClient):
     def sub(self, topic) -> int:
         self.subMap[topic] = 0
         return self.MqCli.Sub(topic)
+
+    def subJson(self, topic) -> int:
+        self.subMap[topic] = 0
+        return self.MqCli.SubJson(topic)
 
     def subCancel(self, topic) -> int:
         del self.subMap[topic]
